@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Smart Home</title>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="stylecontroll.css">
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css">
+        <style>html {background: #E8FFFF;}
+
+        .box {
+            margin-top: 100px;
+            margin-left: 400px;
+            background-size: cover;
+            transition: 0.5s;
+        }
+        </style>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    </head>
+	<body>
+        <input type="checkbox" id="check">
+        <header>
+            <label for="check">
+                <i class="fas fa-bars" id="sidebar_btn"></i>
+            </label>
+            
+            <div class="left_area">
+                <h3>SMART HOME <span>SYSTEM</span></h3>
+            </div>
+            <div class="right_area">
+                <a href="index.html" class="return_btn" target="_self">HOME</a>
+            </div>
+            
+        </header>
+
+        <div class="sidebar">
+            <center>
+                <img src="l.png" alt="" class="intro">
+            </center>
+            <a href="infor.html" target="_self"><i class="fas fa-users"></i><span>MEMBERS</span></a>
+            <a href="ControlPannel.html" target="_self"><i class="fas fa-edit"></i><span>CONTROLL PANNEL</span></a>
+            <a href="chart.html"target="_self"><i class="fal fa-chart-line"></i><span>CHART</span></a>
+        </div>
+        <div class="history_table">
+           
+                        
+
+            <table class="content-table" id="myTable">
+                <h3>Controll History</h3>
+                <thead>
+                    <tr>
+                        <th width="10%">Order</th>
+                        <th width="10%">Device State</th>
+                        <th width="30%">Datetime</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+        <div class="input_timer">
+            <div class="content_input">
+                <strong>
+                ENTER TIME TO TURN ON: </strong><br/>
+                <input type="text" id="h_val" placeholder="HOURS" value=""/> <br/>
+                <input type="text" id="m_val" placeholder="MINUTES" value=""/> <br/>
+                <input type="text" id="s_val" placeholder="SECONDS " value=""/>
+                <input type="button" value="Start" onclick="start()"/>
+                <input type="button" value="Stop" onclick="stop()"/>  <br/> <br/>
+            </div>
+        </div>
+        <div class="set_clock">
+            <div>
+                <span id="h">HOURS REMAIN</span>: 
+                <span id="m">MINUTES REMAIN</span> :
+                <span id="s">SECONDS REMAIN</span>
+            </div><br>
+        </div>
+        <div class="input_timer_off">
+        <div class="content_input_off">
+            <strong>
+            ENTER TIME TO TURN OFF: </strong><br/>
+            <input type="text" id="h_val_1" placeholder="HOURS" value=""/> <br/>
+            <input type="text" id="m_val_1" placeholder="MINUTES" value=""/> <br/>
+            <input type="text" id="s_val_1" placeholder="SECONDS " value=""/>
+            <input type="button" value="Start" onclick="start_1()"/>
+            <input type="button" value="Stop" onclick="stop_1()"/>  <br/> <br/>
+        </div>
+        </div>
+        <div class="set_clock_off">
+        <div>
+            <span id="h_1">HOURS REMAIN</span>: 
+            <span id="m_1">MINUTES REMAIN</span> :
+            <span id="s_1">SECONDS REMAIN</span>
+        </div><br>
+        </div>
+
+        <script>
+            $(document).ready(function(){
+            updateTable();
+            });
+
+            function updateTable(){
+                $.post("DeviceHistory.php",{device:"door"},
+                function(data){
+                    console.log(data.length);
+                    num = data.length;
+                    var table = document.getElementById("myTable");
+                    for(let i=num-1; i>(num-10); i--){
+                        // insert row
+                        var row = table.insertRow(num-i);
+                        // insert cells
+                        var cell1 = row.insertCell(0);
+                        var cell2 = row.insertCell(1);
+                        var cell3 = row.insertCell(2);
+                        // set value for each cell
+                        cell1.innerHTML = num-i;
+                        if (data[i].state==0) cell2.innerHTML = 'Off';
+                        else cell2.innerHTML = 'On';
+                        cell3.innerHTML = data[i].date_time;
+                        console.log(data[i].date_time);
+                    }
+                })
+            };
+        </script>
+
+
+            <script language="javascript">
+            var h_1 = null; // Giờ
+            var m_1 = null; // Phút
+            var s_1 = null; // Giây
+            var timeout_1 = null; // Timeout
+         
+            function stop_1(){
+                clearTimeout(timeout_1);
+            }
+            function start_1()
+            {
+            /*BƯỚC 1: LẤY GIÁ TRỊ BAN ĐẦU*/
+            if (h_1 === null)
+            {
+                h_1 = (parseInt(document.getElementById('h_val_1').value));
+                m_1 = parseInt(document.getElementById('m_val_1').value);
+                s_1 = parseInt(document.getElementById('s_val_1').value);
+        
+            }
+         
+            /*BƯỚC 1: CHUYỂN ĐỔI DỮ LIỆU*/
+            // Nếu số giây = -1 tức là đã chạy ngược hết số giây, lúc này:
+            //  - giảm số phút xuống 1 đơn vị
+            //  - thiết lập số giây lại 59
+            if (s_1 === -1){
+                m_1 -= 1;
+                s_1 = 59;
+            }
+         
+            // Nếu số phút = -1 tức là đã chạy ngược hết số phút, lúc này:
+            //  - giảm số giờ xuống 1 đơn vị
+            //  - thiết lập số phút lại 59
+            if (m_1 === -1){
+                h_1 -= 1;
+                m_1 = 59;
+            }
+         
+            // Nếu số giờ = -1 tức là đã hết giờ, lúc này:
+            //  - Dừng chương trình
+            if (h_1 == -1){
+                clearTimeout(timeout_1);
+                alert('Time out!');
+                $.post('WriteDeviceState.php',{state:0,device:"door"});
+                init_reload();
+                return false;
+            } 
+            /*BƯỚC 1: HIỂN THỊ ĐỒNG HỒ*/
+            document.getElementById('h_1').innerText = "HOURS REMAIN:" +"  " + h_1.toString();
+            document.getElementById('m_1').innerText = "MINUTES REMAIN: "+" " + m_1.toString();
+            document.getElementById('s_1').innerText = "SECONDS REMAIN" + " " + s_1.toString();
+         
+            /*BƯỚC 1: GIẢM PHÚT XUỐNG 1 GIÂY VÀ GỌI LẠI SAU 1 GIÂY */
+            timeout_1 = setTimeout(function(){
+                s_1--;
+                start_1();
+            }, 1000);
+        }
+        </script>
+
+
+        </script>
+        <script language="javascript">
+        var h = null; // Giờ
+        var m = null; // Phút
+        var s = null; // Giây
+        var timeout = null; // Timeout
+     
+        function stop(){
+            clearTimeout(timeout);
+        }
+        function start()
+        {
+        /*BƯỚC 1: LẤY GIÁ TRỊ BAN ĐẦU*/
+        if (h === null)
+        {
+            h = (parseInt(document.getElementById('h_val').value));
+            m = parseInt(document.getElementById('m_val').value);
+            s = parseInt(document.getElementById('s_val').value);
+    
+        }
+     
+        /*BƯỚC 1: CHUYỂN ĐỔI DỮ LIỆU*/
+        // Nếu số giây = -1 tức là đã chạy ngược hết số giây, lúc này:
+        //  - giảm số phút xuống 1 đơn vị
+        //  - thiết lập số giây lại 59
+        if (s === -1){
+            m -= 1;
+            s = 59;
+        }
+     
+        // Nếu số phút = -1 tức là đã chạy ngược hết số phút, lúc này:
+        //  - giảm số giờ xuống 1 đơn vị
+        //  - thiết lập số phút lại 59
+        if (m === -1){
+            h -= 1;
+            m = 59;
+        }
+     
+        // Nếu số giờ = -1 tức là đã hết giờ, lúc này:
+        //  - Dừng chương trình
+        if (h == -1){
+            clearTimeout(timeout);
+            alert('Time out!');
+            $.post('WriteDeviceState.php',{state:1,device:"door"});
+            init_reload();
+            function init_reload(){
+                setInterval( function() {
+                           window.location.reload();
+         
+                  },20);
+            }
+            return false;
+        } 
+        /*BƯỚC 1: HIỂN THỊ ĐỒNG HỒ*/
+        document.getElementById('h').innerText = "HOURS REMAIN:" +"  " + h.toString();
+        document.getElementById('m').innerText = "MINUTES REMAIN: "+" " + m.toString();
+        document.getElementById('s').innerText = "SECONDS REMAIN" + " " + s.toString();
+     
+        /*BƯỚC 1: GIẢM PHÚT XUỐNG 1 GIÂY VÀ GỌI LẠI SAU 1 GIÂY */
+        timeout = setTimeout(function(){
+            s--;
+            start();
+        }, 1000);
+    }
+    </script>
+	</body>
+</html>
